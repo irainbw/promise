@@ -1,7 +1,6 @@
 //
 // JavaScript 风格 Promise：executor 构造、链式 then、resolve/reject
 //
-
 #include <exception>
 #include <functional>
 #include <string>
@@ -10,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-namespace CSPromise {
+namespace CPromise {
 
 enum class PromiseState { Pending, Fulfilled, Rejected };
 
@@ -116,6 +115,7 @@ public:
             m_rejectFn(err);
         }
     }
+
 public:
 
     void reject(const std::string& message, int code = 0) {
@@ -167,7 +167,12 @@ public:
                                 reject(PromiseError("Chaining cycle detected for promise", -1));
                                 return;
                             }
-                            result.then([resolve](const U& u) mutable { resolve(u); });
+                            // Handle Promise<void> case: then callback takes no parameters
+                            if constexpr (std::is_same_v<typename PromiseTraits<R>::ValueType, void>) {
+                                result.then([resolve]() mutable { resolve(); });
+                            } else {
+                                result.then([resolve](const U& u) mutable { resolve(u); });
+                            }
                             result.catchError([reject](const PromiseError& e) mutable { reject(e); });
                         } else {
                             resolve(std::move(result));
@@ -200,7 +205,12 @@ public:
                                     reject(PromiseError("Chaining cycle detected for promise", -1));
                                     return;
                                 }
-                                result.then([resolve](const U& u) mutable { resolve(u); });
+                                // Handle Promise<void> case: then callback takes no parameters
+                                if constexpr (std::is_same_v<typename PromiseTraits<R2>::ValueType, void>) {
+                                    result.then([resolve]() mutable { resolve(); });
+                                } else {
+                                    result.then([resolve](const U& u) mutable { resolve(u); });
+                                }
                                 result.catchError([reject](const PromiseError& err) mutable { reject(err); });
                             } else {
                                 resolve(std::move(result));
@@ -271,7 +281,12 @@ public:
                                 reject(PromiseError("Chaining cycle detected for promise", -1));
                                 return;
                             }
-                            result.then([resolve](const U& u) mutable { resolve(u); });
+                            // Handle Promise<void> case: then callback takes no parameters
+                            if constexpr (std::is_same_v<typename PromiseTraits<R>::ValueType, void>) {
+                                 result.then([resolve]() mutable { resolve(); });
+                             } else {
+                                result.then([resolve](const U& u) mutable { resolve(u); });
+                             }
                             result.catchError([reject](const PromiseError& e) mutable { reject(e); });
                         } else {
                             resolve(std::move(result));
@@ -452,7 +467,12 @@ public:
                                 reject(PromiseError("Chaining cycle detected for promise", -1));
                                 return;
                             }
-                            result.then([resolve](const U& u) mutable { resolve(u); });
+                            // Handle Promise<void> case: then callback takes no parameters
+                            if constexpr (std::is_same_v<typename PromiseTraits<R>::ValueType, void>) {
+                                 result.then([resolve]() mutable { resolve(); });
+                             } else {
+                                result.then([resolve](const U& u) mutable { resolve(u); });
+                             }
                             result.catchError([reject](const PromiseError& e) mutable { reject(e); });
                         } else {
                             resolve(std::move(result));
@@ -485,7 +505,12 @@ public:
                                     reject(PromiseError("Chaining cycle detected for promise", -1));
                                     return;
                                 }
-                                result.then([resolve](const U& u) mutable { resolve(u); });
+                                // Handle Promise<void> case: then callback takes no parameters
+                                if constexpr (std::is_same_v<typename PromiseTraits<R2>::ValueType, void>) {
+                                    result.then([resolve]() mutable { resolve(); });
+                                } else {
+                                    result.then([resolve](const U& u) mutable { resolve(u); });
+                                }
                                 result.catchError([reject](const PromiseError& err) mutable { reject(err); });
                             } else {
                                 resolve(std::move(result));
@@ -553,7 +578,12 @@ public:
                                 reject(PromiseError("Chaining cycle detected for promise", -1));
                                 return;
                             }
-                            result.then([resolve](const U& u) mutable { resolve(u); });
+                            // Handle Promise<void> case: then callback takes no parameters
+                            if constexpr (std::is_same_v<typename PromiseTraits<R>::ValueType, void>) {
+                                 result.then([resolve]() mutable { resolve(); });
+                             } else {
+                                result.then([resolve](const U& u) mutable { resolve(u); });
+                             }
                             result.catchError([reject](const PromiseError& e) mutable { reject(e); });
                         } else {
                             resolve(std::move(result));
@@ -638,8 +668,7 @@ private:
     RejectFn  m_rejectFn;   // 保存 reject 函数（executor 构造时创建）
 };
 
-} 
-
+} // namespace VoiceWave
 
 
 
