@@ -116,45 +116,6 @@ public:
             m_rejectFn(err);
         }
     }
-
-private:
-    /// 内部 resolve 处理：检测循环、处理 Promise 值（类似 JS 的 #resolve）
-    void resolveValue(T value) {
-        if (!d || d->state != PromiseState::Pending) return;
-        
-        // 循环检测：如果 value 是 Promise 且指向自身，则 reject
-        if constexpr (PromiseTraits<T>::isPromise) {
-            // 检查是否 resolve 了自身（通过比较 shared_ptr）
-            if (value.d && value.d == this->d) {
-                rejectValue(PromiseError("Chaining cycle detected for promise", -1));
-                return;
-            }
-            // 如果 value 是 Promise<U>，等待它完成
-            value.then([this](const typename PromiseTraits<T>::ValueType& v) {
-                if (!d || d->state != PromiseState::Pending) return;
-                d->state = PromiseState::Fulfilled;
-                d->value = v;
-                d->maybeInvoke();
-            }).catchError([this](const PromiseError& e) {
-                if (!d || d->state != PromiseState::Pending) return;
-                d->state = PromiseState::Rejected;
-                d->error = e;
-                d->maybeInvoke();
-            });
-        } else {
-            d->state = PromiseState::Fulfilled;
-            d->value = std::move(value);
-            d->maybeInvoke();
-        }
-    }
-
-    void rejectValue(const PromiseError& err) {
-        if (!d || d->state != PromiseState::Pending) return;
-        d->state = PromiseState::Rejected;
-        d->error = err;
-        d->maybeInvoke();
-    }
-
 public:
 
     void reject(const std::string& message, int code = 0) {
